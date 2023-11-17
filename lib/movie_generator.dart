@@ -6,7 +6,7 @@ class MovieGenerator {
 
   static Future<Map<String, String>> generateRandomMovie() async {
     final int pageNumber = 1 + (DateTime.now().millisecondsSinceEpoch % 5); // Random page number between 1 and 5
-    final String url = "https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=$pageNumber&api_key=$apiKey";
+    final String url = "https://api.themoviedb.org/3/movie/top_rated?language=fr-FR&page=$pageNumber&api_key=$apiKey";
 
     final response = await http.get(Uri.parse(url));
 

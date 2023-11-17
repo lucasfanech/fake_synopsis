@@ -36,52 +36,105 @@ class _GamePageState extends State<GamePage> {
 
   @override
   Widget build(BuildContext context) {
+    // array of words state having false values for 10 values
+    List<bool> wordState = List.generate(10, (index) => false);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Page du Jeu'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text('Tour de ${widget.playerNames[currentPlayerIndex]}'),
-            if (currentMovie != null)
-              Column(
+            // Colonne de gauche
+            Expanded(
+              flex: 1, // Utilise 1/2 de l'espace disponible
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Film: ${currentMovie!['title']}'),
-                  Image.network('https://image.tmdb.org/t/p/w200${currentMovie!['posterPath']}'),
-                  Text('Synopsis: ${currentMovie!['overview']}'),
+                  Text('Tour de ${widget.playerNames[currentPlayerIndex]}'),
+                  if (currentMovie != null)
+                    Column(
+                      children: [
+                        Text('Film: ${currentMovie!['title']}'),
+                        Image.network('https://image.tmdb.org/t/p/w200${currentMovie!['posterPath']}'),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.5, // Limite la largeur du synopsis à la moitié de l'écran
+                          child: Text('Synopsis: ${currentMovie!['overview']}'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
-            if (currentWords != null) Text('Mots à placer: ${currentWords!.join(', ')}'),
-            ElevatedButton(
-              onPressed: () {
-                // Faire quelque chose avec les mots placés (à implémenter)
-                // Par exemple, vérifier si les mots sont correctement placés et attribuer des points
-                // ...
-
-                // Passer au tour suivant
-                nextTurn();
-              },
-              child: Text('Terminer le Tour'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Commencer le tour pour le joueur actuel
-                print('Avant appel à generateRandomMovieAndWords');
-                print('currentMovie: $currentMovie');
-                generateRandomMovieAndWords();
-                // print movie and words in console
-                print('Après appel à generateRandomMovieAndWords');
-                print('currentMovie: $currentMovie');
-              },
-              child: Text('Commencer le Tour'),
+            // Colonne de droite
+            Expanded(
+              flex: 1, // Utilise 1/2 de l'espace disponible
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Appelle la fonction de génération de film
+                      Map<String, String> movie = await MovieGenerator.generateRandomMovie();
+                      currentMovie = movie;
+                      // Met à jour l'affiche du film et le synopsis
+                      setState(() {});
+                    },
+                    child: Text('Film aléatoire'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Faire quelque chose avec les mots placés (à implémenter)
+                      // Par exemple, vérifier si les mots sont correctement placés et attribuer des points
+                      // ...
+
+                      // Passer au tour suivant
+                      nextTurn();
+                    },
+                    child: Text('Terminer le Tour'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Commencer le tour pour le joueur actuel
+                      print('Avant appel à generateRandomMovieAndWords');
+                      print('currentMovie: $currentMovie');
+                      generateRandomMovieAndWords();
+                      // print movie and words in console
+                      print('Après appel à generateRandomMovieAndWords');
+                      print('currentMovie: $currentMovie');
+                    },
+                    child: Text('Commencer le Tour'),
+                  ),
+                  // BOucle pour afficher les mots les uns en dessous des autres
+                  if (currentWords != null) Text('Mots à placer:'),
+                  if (currentWords != null)
+                    // affiche des boutons pour chaque mot
+                    for (var i = 0; i < currentWords!.length; i++)
+                      ElevatedButton(
+                        onPressed: () {
+                          // changer la couleur du bouton
+                          setState(() {
+                            wordState[i] = !wordState[i];
+                            // console log to check if the state is changing
+                            print(wordState);
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: wordState[i] ? Colors.green : Colors.grey,
+                        ),
+                        child: Text('${currentWords![i]}'),
+                      ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
 
   // Fonction pour générer un film et des mots aléatoires
   void generateRandomMovieAndWords() async {
@@ -94,9 +147,8 @@ class _GamePageState extends State<GamePage> {
 
     });
 
-    // Utilise le synopsis du film pour générer les mots
-    generateWordsFromSynopsis(currentMovie!['overview']!);
-
+    // générer les mots
+    generateWords();
 
     print("Après appel à generateRandomMovieAndWords");
     print("currentMovie: ${currentMovie!['title']}");
@@ -104,9 +156,9 @@ class _GamePageState extends State<GamePage> {
 
   }
 
-  // Fonction pour générer les mots en utilisant le synopsis
-  void generateWordsFromSynopsis(String synopsis) async {
-    List<String> words = await WordGenerator.generateWordsFromSynopsis(synopsis);
+  // Fonction pour générer les mots
+  void generateWords() async {
+    List<String> words = await WordGenerator.getRandomWords();
 
     // Met à jour l'état avec les mots générés
     setState(() {
