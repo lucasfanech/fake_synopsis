@@ -22,6 +22,7 @@ class PlayerInputPage extends StatefulWidget {
 class _PlayerInputPageState extends State<PlayerInputPage> {
   int numberOfPlayers = 2; // Valeur par défaut
   List<String> playerNames = List.generate(2, (index) => ""); // Initialisation des noms des joueurs
+  List<int> playerScores = List.generate(2, (index) => 0); // Initialisation des scores des joueurs
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +46,7 @@ class _PlayerInputPageState extends State<PlayerInputPage> {
                 setState(() {
                   numberOfPlayers = value.toInt();
                   playerNames = List.generate(numberOfPlayers, (index) => "");
+                  playerScores = List.generate(numberOfPlayers, (index) => 0);
                 });
               },
             ),
@@ -72,7 +74,7 @@ class _PlayerInputPageState extends State<PlayerInputPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GamePage(numberOfPlayers, playerNames),
+                    builder: (context) => GamePage(numberOfPlayers, playerNames, playerScores),
                   ),
                 );
               },

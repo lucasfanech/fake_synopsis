@@ -5,8 +5,11 @@ import 'word_generator.dart';
 class GamePage extends StatefulWidget {
   final int numberOfPlayers;
   final List<String> playerNames;
+  final List<int> playerScores;
+  // array of words state having false values for 10 values
+  List<bool> wordState = List.generate(10, (index) => false);
 
-  GamePage(this.numberOfPlayers, this.playerNames);
+  GamePage(this.numberOfPlayers, this.playerNames, this.playerScores);
 
   @override
   _GamePageState createState() => _GamePageState();
@@ -36,8 +39,6 @@ class _GamePageState extends State<GamePage> {
 
   @override
   Widget build(BuildContext context) {
-    // array of words state having false values for 10 values
-    List<bool> wordState = List.generate(10, (index) => false);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,7 +54,7 @@ class _GamePageState extends State<GamePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Tour de ${widget.playerNames[currentPlayerIndex]}'),
+                  Text('Tour de ${widget.playerNames[currentPlayerIndex]} - Score: ${widget.playerScores[currentPlayerIndex]}'),
                   if (currentMovie != null)
                     Column(
                       children: [
@@ -82,30 +83,35 @@ class _GamePageState extends State<GamePage> {
                       // Met à jour l'affiche du film et le synopsis
                       setState(() {});
                     },
-                    child: Text('Film aléatoire'),
+                    child: Text('Changer de film'),
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      // Faire quelque chose avec les mots placés (à implémenter)
-                      // Par exemple, vérifier si les mots sont correctement placés et attribuer des points
-                      // ...
-
+                      generateWords();
+                      // reset l'état des mots
+                      widget.wordState = List.generate(10, (index) => false);
+                    },
+                    child: Text('Changer de mots'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // compter le nombre de mots trouvés par le joueur
+                      int score = 0;
+                      for (var i = 0; i < widget.wordState.length; i++) {
+                        if (widget.wordState[i]) {
+                          score++;
+                        }
+                      }
+                      // Mettre à jour le score du joueur
+                      setState(() {
+                        widget.playerScores[currentPlayerIndex] += score;
+                      });
+                      // Reset l'état des mots
+                      widget.wordState = List.generate(10, (index) => false);
                       // Passer au tour suivant
                       nextTurn();
                     },
                     child: Text('Terminer le Tour'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Commencer le tour pour le joueur actuel
-                      print('Avant appel à generateRandomMovieAndWords');
-                      print('currentMovie: $currentMovie');
-                      generateRandomMovieAndWords();
-                      // print movie and words in console
-                      print('Après appel à generateRandomMovieAndWords');
-                      print('currentMovie: $currentMovie');
-                    },
-                    child: Text('Commencer le Tour'),
                   ),
                   // BOucle pour afficher les mots les uns en dessous des autres
                   if (currentWords != null) Text('Mots à placer:'),
@@ -116,13 +122,11 @@ class _GamePageState extends State<GamePage> {
                         onPressed: () {
                           // changer la couleur du bouton
                           setState(() {
-                            wordState[i] = !wordState[i];
-                            // console log to check if the state is changing
-                            print(wordState);
+                            widget.wordState[i] = !widget.wordState[i];
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          primary: wordState[i] ? Colors.green : Colors.grey,
+                          primary: widget.wordState[i] ? Colors.green : Colors.red,
                         ),
                         child: Text('${currentWords![i]}'),
                       ),
